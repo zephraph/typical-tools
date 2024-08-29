@@ -4,29 +4,37 @@ entry Schema:
 	(imports+=Import | declarations+=Declaration)*;
 
 Import:
-	'import' path=PATH ('as' namespace=ID)?;
+    'import' path=PATH ('as' alias=ID)?;
 
 Declaration:
-	(structs+=Struct | choices+=Choice);
-
-Struct:
-	'struct' name=ID '{' fields+=Field* '}';
-
-Choice:
-	'choice' name=ID '{' fields+=Field* '}';
+    variant=('struct' | 'choice') name=ID '{' 
+        (fields+=Field | deleted+=Deleted )+
+    '}';
 
 Field:
-	(Rule)? name=ID (':' type=Type)? '=' index=INDEX;
+    (Rule)? name=ID (':' Type)? '=' index=INDEX;
 
-Rule:
-	rule='asymmetric' | 'optional' | 'required';
-	
-Type:
-	type='String' | 'Bool' | 'Bytes';
+Deleted:
+    'deleted' indexes+=INDEX*;
+
+fragment Rule:
+    rule=('asymmetric' | 'optional' | 'required');
+
+fragment Type:
+	type=('String' | 'Bool' | 'Bytes' | 'F64' | 'S64' | 'U64' | 'Unit' | ArrayType | CustomType | ImportedType);
+
+ArrayType:
+    '[' Type ']';
+
+CustomType:
+    ref=[Declaration:ID];
+
+ImportedType:
+    module=ID '.' type=ID;
 
 terminal ID: /[_a-zA-Z][\w_]*/;
 terminal PATH: /'[\w_\/\.-]*'/;
 terminal INDEX returns number: /[0-9][\w_]*/;
 
+hidden terminal COMMENT: /#[^\n\r]*/;
 hidden terminal WS: /\s+/;
-hidden terminal SL_COMMENT: /#[^\n\r]*/;
