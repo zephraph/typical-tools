@@ -1,0 +1,15 @@
+{
+    "projectName": "Typical",
+    "languages": [{
+        "id": "typical",
+        "grammar": "src/language/typical.langium",
+        "fileExtensions": [".t"],
+        "textMate": {
+            "out": "syntaxes/typical.tmLanguage.json"
+        },
+        "monarch": {
+            "out": "src/syntaxes/typical.monarch.ts"
+        }
+    }],
+    "out": "src/language/generated"
+}

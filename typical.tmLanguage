@@ -1,0 +1,61 @@
+{
+  "name": "Typical",
+  "scopeName": "source.typical",
+  "fileTypes": ["typical"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#strings" },
+    { "include": "#identifiers" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.typical",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.typical",
+          "match": "\\b(import|as|struct|choice)\\b"
+        },
+        {
+          "name": "keyword.other.typical",
+          "match": "\\b(asymmetric|optional|required)\\b"
+        },
+        {
+          "name": "storage.type.typical",
+          "match": "\\b(String|Bool|Bytes)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.single.typical",
+      "begin": "'",
+      "end": "'",
+      "patterns": [
+        {
+          "name": "constant.character.escape.typical",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.typical",
+          "match": "[_a-zA-Z][\\w_]*"
+        }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.typical",
+      "match": "\\b[0-9][\\w_]*\\b"
+    }
+  }
+}
