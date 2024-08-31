@@ -1,10 +1,11 @@
 import { type ValidationAcceptor, type ValidationChecks } from "langium";
-import type {
-  TypicalAstType,
-  Import,
-  Declaration,
-  Field,
-  Deleted,
+import {
+  type TypicalAstType,
+  type Import,
+  type Declaration,
+  type Field,
+  type Deleted,
+  isImportedType,
 } from "./generated/ast.js";
 import type { TypicalServices } from "./typical-module.js";
 import { dirname, join } from "path";
@@ -16,7 +17,7 @@ export function registerValidationChecks(services: TypicalServices) {
   const registry = services.validation.ValidationRegistry;
   const validator = services.validation.TypicalValidator;
   const checks: ValidationChecks<TypicalAstType> = {
-    Import: [validator.uniqueImport, validator.importExists],
+    Import: validator.validateImport,
     Declaration: [validator.uniqueDeclaration],
     Field: [validator.uniqueIndex, validator.noDeletedField],
     Deleted: [validator.noUsedDeleted],
@@ -30,22 +31,47 @@ export function registerValidationChecks(services: TypicalServices) {
 export class TypicalValidator {
   constructor(private services: TypicalServices) {}
 
-  uniqueImport(imp: Import, accept: ValidationAcceptor): void {
-    for (const i of imp.$container.imports) {
-      if (i === imp) continue;
-      if (i.path === imp.path) {
-        accept("error", `Duplicate import of ${imp.path}.`, { node: imp });
-      }
-      if (imp.alias && imp.alias === i.alias) {
-        accept("error", `Duplicate import alias of ${imp.alias}.`, {
-          node: imp,
-        });
-      }
-    }
+  validateImport(imp: Import, accept: ValidationAcceptor): void {
+    this.importExists(imp, accept) &&
+      this.uniqueImport(imp, accept) &&
+      this.importUsed(imp, accept);
   }
 
-  importExists(imp: Import, accept: ValidationAcceptor): void {
-    const importPath = imp.path.slice(1, -1) + ".t";
+  private uniqueImport(imp: Import, accept: ValidationAcceptor): boolean {
+    // We want to check all imports before the current one.
+    const { imports } = imp.$container;
+    const impIndex = imports.indexOf(imp);
+    for (let i = 0; i < impIndex; i++) {
+      if (imports[i].path === imp.path) {
+        accept(
+          "error",
+          `Duplicate import of ${imp.path.replace(".t'", "'")}.`,
+          {
+            node: imp,
+          }
+        );
+        return false;
+      }
+      if (imp.alias && imp.alias === imports[i].alias) {
+        accept("error", `Duplicate import alias of ${imp.alias}.`, {
+          node: imp,
+          property: "alias",
+        });
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private importExists(imp: Import, accept: ValidationAcceptor): boolean {
+    const importPath = imp.path.slice(1, -1);
+    if (!importPath.endsWith(".t")) {
+      accept("error", `Import path must end with .t`, {
+        node: imp,
+        property: "path",
+      });
+      return false;
+    }
     const currentUri = imp.$container.$document!.uri;
     const importUri = currentUri.with({
       path: join(dirname(currentUri.path), ".", importPath),
@@ -59,7 +85,29 @@ export class TypicalValidator {
         node: imp,
         property: "path",
       });
+      return false;
     }
+    return true;
+  }
+
+  private importUsed(imp: Import, accept: ValidationAcceptor): boolean {
+    const importIdent = imp.alias
+      ? imp.alias
+      : imp.path.slice(1, -1).split("/").pop()?.slice(0, -2);
+    if (!importIdent) return false;
+
+    for (const decl of imp.$container.declarations) {
+      for (const field of decl.fields) {
+        if (isImportedType(field.type) && field.type.module === importIdent) {
+          return true;
+        }
+      }
+    }
+    accept("warning", `Import not used.`, {
+      node: imp,
+      property: imp.alias ? "alias" : "path",
+    });
+    return true;
   }
 
   uniqueDeclaration(decl: Declaration, accept: ValidationAcceptor): void {
