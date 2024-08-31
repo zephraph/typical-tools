@@ -1,4 +1,4 @@
-import type { ValidationAcceptor, ValidationChecks } from "langium";
+import { type ValidationAcceptor, type ValidationChecks } from "langium";
 import type {
   TypicalAstType,
   Import,
@@ -7,6 +7,7 @@ import type {
   Deleted,
 } from "./generated/ast.js";
 import type { TypicalServices } from "./typical-module.js";
+import { dirname, join } from "path";
 
 /**
  * Register custom validation checks.
@@ -15,7 +16,7 @@ export function registerValidationChecks(services: TypicalServices) {
   const registry = services.validation.ValidationRegistry;
   const validator = services.validation.TypicalValidator;
   const checks: ValidationChecks<TypicalAstType> = {
-    Import: validator.uniqueImport,
+    Import: [validator.uniqueImport, validator.importExists],
     Declaration: [validator.uniqueDeclaration],
     Field: [validator.uniqueIndex, validator.noDeletedField],
     Deleted: [validator.noUsedDeleted],
@@ -27,6 +28,8 @@ export function registerValidationChecks(services: TypicalServices) {
  * Implementation of custom validations.
  */
 export class TypicalValidator {
+  constructor(private services: TypicalServices) {}
+
   uniqueImport(imp: Import, accept: ValidationAcceptor): void {
     for (const i of imp.$container.imports) {
       if (i === imp) continue;
@@ -38,6 +41,24 @@ export class TypicalValidator {
           node: imp,
         });
       }
+    }
+  }
+
+  importExists(imp: Import, accept: ValidationAcceptor): void {
+    const importPath = imp.path.slice(1, -1) + ".t";
+    const currentUri = imp.$container.$document!.uri;
+    const importUri = currentUri.with({
+      path: join(dirname(currentUri.path), ".", importPath),
+    });
+
+    const hasImport =
+      this.services.shared.workspace.LangiumDocuments.hasDocument(importUri);
+
+    if (!hasImport) {
+      accept("error", `File ${imp.path} does not exist.`, {
+        node: imp,
+        property: "path",
+      });
     }
   }
 
