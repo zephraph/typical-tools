@@ -6,6 +6,7 @@ import {
   type Field,
   type Deleted,
   isImportedType,
+  Schema,
 } from "./generated/ast.js";
 import type { TypicalServices } from "./typical-module.js";
 import { dirname, join } from "path";
@@ -19,7 +20,11 @@ export function registerValidationChecks(services: TypicalServices) {
   const checks: ValidationChecks<TypicalAstType> = {
     Import: validator.validateImport,
     Declaration: [validator.uniqueDeclaration],
-    Field: [validator.uniqueIndex, validator.noDeletedField],
+    Field: [
+      validator.uniqueIndex,
+      validator.noDeletedField,
+      validator.importedTypeExists,
+    ],
     Deleted: [validator.noUsedDeleted],
   };
   registry.register(checks, validator);
@@ -141,6 +146,58 @@ export class TypicalValidator {
       accept("error", `Index ${field.index} should be deleted.`, {
         node: field,
       });
+    }
+  }
+
+  importedTypeExists(field: Field, accept: ValidationAcceptor): void {
+    if (isImportedType(field.type)) {
+      const { module, type } = field.type;
+      const currentUri = field.$container.$container.$document!.uri;
+
+      // Find the matching import
+      const matchingImport = field.$container.$container.imports.find(
+        (imp) =>
+          imp.alias === module ||
+          imp.path.slice(1, -1).split("/").pop()?.slice(0, -2) === module
+      );
+
+      if (!matchingImport) {
+        accept("error", `Import for module '${module}' not found.`, {
+          node: field,
+          property: "type",
+        });
+        return;
+      }
+
+      // Get the imported document
+      const importPath = matchingImport.path.slice(1, -1);
+      const importUri = currentUri.with({
+        path: join(dirname(currentUri.path), ".", importPath),
+      });
+      const importedDocument =
+        this.services.shared.workspace.LangiumDocuments.getDocument(importUri);
+
+      if (!importedDocument) {
+        accept("error", `Imported file ${importPath} not found.`, {
+          node: field,
+          property: "type",
+        });
+        return;
+      }
+
+      console.log("declarations", importedDocument.parseResult.value);
+      // Check if the type exists in the imported document
+      const typeExists = (
+        importedDocument.parseResult.value as Schema
+      ).declarations.some((decl) => decl.name === type);
+
+      if (!typeExists) {
+        accept(
+          "error",
+          `Type '${type}' not found in imported module '${module}'.`,
+          { node: field, property: "type" }
+        );
+      }
     }
   }
 
