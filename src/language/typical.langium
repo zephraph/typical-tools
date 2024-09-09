@@ -21,16 +21,13 @@ fragment Rule:
     rule=('asymmetric' | 'optional' | 'required');
 
 fragment Type:
-	type=('String' | 'Bool' | 'Bytes' | 'F64' | 'S64' | 'U64' | 'Unit' | ArrayType | CustomType | ImportedType);
+	type=('String' | 'Bool' | 'Bytes' | 'F64' | 'S64' | 'U64' | 'Unit' | ArrayType | CustomType);
 
 ArrayType:
     '[' Type ']';
 
 CustomType:
-    ref=[Declaration:ID];
-
-ImportedType:
-    module=ID '.' type=ID;
+    (module=ID '.')? type=[Declaration:ID];
 
 terminal ID: /[_a-zA-Z][\w_]*/;
 terminal PATH: /'[\w_\/\.-]*'/;
