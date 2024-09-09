@@ -5,8 +5,8 @@ import {
   type Declaration,
   type Field,
   type Deleted,
-  isImportedType,
   Schema,
+  isCustomType,
 } from "./generated/ast.js";
 import type { TypicalServices } from "./typical-module.js";
 import { dirname, join } from "path";
@@ -103,7 +103,7 @@ export class TypicalValidator {
 
     for (const decl of imp.$container.declarations) {
       for (const field of decl.fields) {
-        if (isImportedType(field.type) && field.type.module === importIdent) {
+        if (isCustomType(field.type) && field.type.module === importIdent) {
           return true;
         }
       }
@@ -150,7 +150,7 @@ export class TypicalValidator {
   }
 
   importedTypeExists(field: Field, accept: ValidationAcceptor): void {
-    if (isImportedType(field.type)) {
+    if (isCustomType(field.type)) {
       const { module, type } = field.type;
       const currentUri = field.$container.$container.$document!.uri;
 
@@ -189,7 +189,7 @@ export class TypicalValidator {
       // Check if the type exists in the imported document
       const typeExists = (
         importedDocument.parseResult.value as Schema
-      ).declarations.some((decl) => decl.name === type);
+      ).declarations.some((decl) => decl.name === type.ref?.name);
 
       if (!typeExists) {
         accept(
