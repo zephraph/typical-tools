@@ -1,0 +1,32 @@
+{
+  "name": "typical",
+  "scopeName": "source.typical",
+  "fileTypes": [
+    ".t"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "name": "keyword.control.typical",
+      "match": "\\b(Bool|Bytes|F64|S64|String|U64|Unit|as|asymmetric|choice|deleted|import|optional|required|struct)\\b"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "begin": "#",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.whitespace.comment.leading.typical"
+            }
+          },
+          "end": "(?=$)",
+          "name": "comment.line.typical"
+        }
+      ]
+    }
+  }
+}
