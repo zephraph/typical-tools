@@ -1,4 +1,8 @@
-import { type ValidationAcceptor, type ValidationChecks } from "langium";
+import {
+  AstUtils,
+  type ValidationAcceptor,
+  type ValidationChecks,
+} from "langium";
 import {
   type TypicalAstType,
   type Import,
@@ -7,9 +11,11 @@ import {
   type Deleted,
   Schema,
   isCustomType,
+  CustomType,
 } from "./generated/ast.js";
 import type { TypicalServices } from "./typical-module.js";
 import { dirname, join } from "path";
+import { extractModuleFromImport } from "./utils.js";
 
 /**
  * Register custom validation checks.
@@ -20,11 +26,8 @@ export function registerValidationChecks(services: TypicalServices) {
   const checks: ValidationChecks<TypicalAstType> = {
     Import: validator.validateImport,
     Declaration: [validator.uniqueDeclaration],
-    Field: [
-      validator.uniqueIndex,
-      validator.noDeletedField,
-      validator.importedTypeExists,
-    ],
+    Field: [validator.uniqueIndex, validator.noDeletedField],
+    CustomType: validator.moduleExists,
     Deleted: [validator.noUsedDeleted],
   };
   registry.register(checks, validator);
@@ -96,10 +99,7 @@ export class TypicalValidator {
   }
 
   private importUsed(imp: Import, accept: ValidationAcceptor): boolean {
-    const importIdent = imp.alias
-      ? imp.alias
-      : imp.path.slice(1, -1).split("/").pop()?.slice(0, -2);
-    if (!importIdent) return false;
+    const importIdent = extractModuleFromImport(imp);
 
     for (const decl of imp.$container.declarations) {
       for (const field of decl.fields) {
@@ -138,6 +138,20 @@ export class TypicalValidator {
     }
   }
 
+  moduleExists(type: CustomType, accept: ValidationAcceptor): void {
+    if (!type.module) return;
+    const document = AstUtils.getDocument(type.$container);
+    const schema = document.parseResult.value as Schema;
+    if (
+      !schema.imports.some((i) => extractModuleFromImport(i) === type.module)
+    ) {
+      accept("error", `Import reference '${type.module}' not found.`, {
+        node: type,
+        property: "module",
+      });
+    }
+  }
+
   noDeletedField(field: Field, accept: ValidationAcceptor): void {
     const deletedIndexes = field.$container.deleted.flatMap(
       ({ indexes }) => indexes
@@ -146,58 +160,6 @@ export class TypicalValidator {
       accept("error", `Index ${field.index} should be deleted.`, {
         node: field,
       });
-    }
-  }
-
-  importedTypeExists(field: Field, accept: ValidationAcceptor): void {
-    if (isCustomType(field.type)) {
-      const { module, type } = field.type;
-      const currentUri = field.$container.$container.$document!.uri;
-
-      // Find the matching import
-      const matchingImport = field.$container.$container.imports.find(
-        (imp) =>
-          imp.alias === module ||
-          imp.path.slice(1, -1).split("/").pop()?.slice(0, -2) === module
-      );
-
-      if (!matchingImport) {
-        accept("error", `Import for module '${module}' not found.`, {
-          node: field,
-          property: "type",
-        });
-        return;
-      }
-
-      // Get the imported document
-      const importPath = matchingImport.path.slice(1, -1);
-      const importUri = currentUri.with({
-        path: join(dirname(currentUri.path), ".", importPath),
-      });
-      const importedDocument =
-        this.services.shared.workspace.LangiumDocuments.getDocument(importUri);
-
-      if (!importedDocument) {
-        accept("error", `Imported file ${importPath} not found.`, {
-          node: field,
-          property: "type",
-        });
-        return;
-      }
-
-      console.log("declarations", importedDocument.parseResult.value);
-      // Check if the type exists in the imported document
-      const typeExists = (
-        importedDocument.parseResult.value as Schema
-      ).declarations.some((decl) => decl.name === type.ref?.name);
-
-      if (!typeExists) {
-        accept(
-          "error",
-          `Type '${type}' not found in imported module '${module}'.`,
-          { node: field, property: "type" }
-        );
-      }
     }
   }
 

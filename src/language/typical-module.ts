@@ -15,6 +15,10 @@ import {
   TypicalValidator,
   registerValidationChecks,
 } from "./typical-validator.js";
+import {
+  TypicalScopeComputation,
+  TypicalScopeProvider,
+} from "./typical-scope.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -42,6 +46,10 @@ export const TypicalModule: Module<
 > = {
   validation: {
     TypicalValidator: (services) => new TypicalValidator(services),
+  },
+  references: {
+    ScopeComputation: (services) => new TypicalScopeComputation(services),
+    ScopeProvider: (services) => new TypicalScopeProvider(services),
   },
 };
 
