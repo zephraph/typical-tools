@@ -19,6 +19,7 @@ import {
   TypicalScopeComputation,
   TypicalScopeProvider,
 } from "./typical-scope.js";
+import { TypicalSemanticTokenProvider } from "./typical-token-provider.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -50,6 +51,10 @@ export const TypicalModule: Module<
   references: {
     ScopeComputation: (services) => new TypicalScopeComputation(services),
     ScopeProvider: (services) => new TypicalScopeProvider(services),
+  },
+  lsp: {
+    SemanticTokenProvider: (services) =>
+      new TypicalSemanticTokenProvider(services),
   },
 };
 
