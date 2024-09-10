@@ -1,95 +1,92 @@
 {
-    "name": "Typical",
-    "description": "Please enter a brief description here",
-    "version": "0.0.1",
-    "files": [
-        "bin",
-        "out",
-        "src"
-    ],
-    "type": "module",
-    "scripts": {
-        "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
-        "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
-        "lint": "eslint src --ext ts",
-        "langium:generate": "langium generate",
-        "langium:watch": "langium generate --watch",
-        "vscode:prepublish": "npm run build && npm run lint",
-        "build:web": "npm run build",
-        "bundle": "vite build",
-        "bundle:serve": "http-server ./dist --port 5175",
-        "dev": "vite",
-        "dev:debug": "vite --debug --force",
-        "serve": "npm run dev",
-        "test": "vitest run"
-    },
-    "dependencies": {
-        "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
-        "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
-        "chalk": "~5.3.0",
-        "commander": "~11.0.0",
-        "langium": "~3.1.0",
-        "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
-        "monaco-editor-wrapper": "~4.0.2",
-        "monaco-languageclient": "~8.1.1",
-        "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3",
-        "vscode-languageclient": "~9.0.1",
-        "vscode-languageserver": "~9.0.1"
-    },
-    "devDependencies": {
-        "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
-        "@types/node": "^18.0.0",
-        "@types/vscode": "~1.67.0",
-        "@typescript-eslint/eslint-plugin": "~7.3.1",
-        "@typescript-eslint/parser": "~7.3.1",
-        "concurrently": "~8.2.1",
-        "esbuild": "~0.20.2",
-        "eslint": "~8.57.0",
-        "http-server": "~14.1.1",
-        "langium-cli": "~3.1.0",
-        "typescript": "~5.6.2",
-        "vite": "~5.2.7",
-        "vitest": "~1.4.0"
-    },
-    "volta": {
-        "node": "18.19.1",
-        "npm": "10.2.4"
-    },
-    "displayName": "Typical",
-    "engines": {
-        "vscode": "^1.67.0",
-        "node": ">=18.0.0"
-    },
-    "categories": [
-        "Programming Languages"
-    ],
-    "contributes": {
-        "languages": [
-            {
-                "id": "typical",
-                "aliases": [
-                    "Typical",
-                    "typical"
-                ],
-                "extensions": [
-                    ".t"
-                ],
-                "configuration": "./language-configuration.json"
-            }
+  "name": "typical-tools",
+  "description": "A language server for Typical, a protobuf-like language",
+  "repository": "https://github.com/zephraph/typical-tools",
+  "version": "0.0.1",
+  "files": [
+    "bin",
+    "out",
+    "src"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
+    "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
+    "langium:generate": "langium generate",
+    "langium:watch": "langium generate --watch",
+    "vscode:prepublish": "npm run build",
+    "package": "vsce package",
+    "build:web": "npm run build",
+    "bundle": "vite build",
+    "bundle:serve": "http-server ./dist --port 5175",
+    "dev": "vite",
+    "dev:debug": "vite --debug --force",
+    "serve": "npm run dev",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
+    "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
+    "langium": "~3.1.0",
+    "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
+    "monaco-editor-wrapper": "~4.0.2",
+    "monaco-languageclient": "~8.1.1",
+    "vscode-languageclient": "~9.0.1",
+    "vscode-languageserver": "~9.0.1"
+  },
+  "devDependencies": {
+    "@codingame/esbuild-import-meta-url-plugin": "~1.0.2",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "~1.67.0",
+    "concurrently": "~8.2.1",
+    "esbuild": "~0.20.2",
+    "http-server": "~14.1.1",
+    "langium-cli": "~3.1.0",
+    "typescript": "~5.6.2",
+    "vite": "~5.2.7",
+    "vitest": "~1.4.0",
+    "vsce": "^2.15.0",
+    "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
+  },
+  "volta": {
+    "node": "18.19.1",
+    "npm": "10.2.4"
+  },
+  "displayName": "Typical",
+  "engines": {
+    "vscode": "^1.67.0",
+    "node": ">=18.0.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "typical",
+        "aliases": [
+          "Typical",
+          "typical"
         ],
-        "grammars": [
-            {
-                "language": "typical",
-                "scopeName": "source.typical",
-                "path": "syntaxes/typical.tmLanguage.json"
-            }
-        ]
-    },
-    "activationEvents": [
-        "onLanguage:typical"
+        "extensions": [
+          ".t"
+        ],
+        "configuration": "./language-configuration.json"
+      }
     ],
-    "main": "./out/extension/main.cjs",
-    "bin": {
-        "typical-cli": "./bin/cli.js"
-    }
+    "grammars": [
+      {
+        "language": "typical",
+        "scopeName": "source.typical",
+        "path": "syntaxes/typical.tmLanguage.json"
+      }
+    ]
+  },
+  "activationEvents": [
+    "onLanguage:typical"
+  ],
+  "main": "./out/extension/main.js",
+  "bin": {
+    "typical-cli": "./bin/cli.js"
+  }
 }
