@@ -1,60 +1,60 @@
-import { beforeAll, describe, expect, test } from "vitest";
-import { EmptyFileSystem, type LangiumDocument } from "langium";
-import { expandToString as s } from "langium/generate";
+import { expect, test } from "vitest";
+import { EmptyFileSystemProvider, FileSystemProvider } from "langium";
 import { parseHelper } from "langium/test";
 import { createTypicalServices } from "../../src/language/typical-module.js";
-import { Model, isModel } from "../../src/language/generated/ast.js";
+import { Schema } from "../../src/language/generated/ast.js";
 
-let services: ReturnType<typeof createTypicalServices>;
-let parse:    ReturnType<typeof parseHelper<Model>>;
-let document: LangiumDocument<Model> | undefined;
+const init = (fs?: FileSystemProvider) => {
+  const services = createTypicalServices({
+    fileSystemProvider: () => fs ?? new EmptyFileSystemProvider(),
+  });
+  const parse = parseHelper<Schema>(services.Typical);
+  return { services, parse };
+};
 
-beforeAll(async () => {
-    services = createTypicalServices(EmptyFileSystem);
-    parse = parseHelper<Model>(services.Typical);
+test("parse struct", async () => {
+  const { parse } = init();
+  const document = await parse(`
+    struct Point {
+      x: S64 = 0
+      y: S64 = 1
+    }
+  `);
 
-    // activate the following if your linking test requires elements from a built-in library, for example
-    // await services.shared.workspace.WorkspaceManager.initializeWorkspace([]);
+  expect(document.parseResult.lexerErrors).toHaveLength(0);
+  expect(document.parseResult.parserErrors).toHaveLength(0);
 });
 
-describe('Parsing tests', () => {
+test("parse choice", async () => {
+  const { parse } = init();
+  const document = await parse(`
+    choice Option {
+      no: Bool = 0
+      yes: Bool = 1
+    }
+  `);
 
-    test('parse simple model', async () => {
-        document = await parse(`
-            person Langium
-            Hello Langium!
-        `);
-
-        // check for absensce of parser errors the classic way:
-        //  deacivated, find a much more human readable way below!
-        // expect(document.parseResult.parserErrors).toHaveLength(0);
-
-        expect(
-            // here we use a (tagged) template expression to create a human readable representation
-            //  of the AST part we are interested in and that is to be compared to our expectation;
-            // prior to the tagged template expression we check for validity of the parsed document object
-            //  by means of the reusable function 'checkDocumentValid()' to sort out (critical) typos first;
-            checkDocumentValid(document) || s`
-                Persons:
-                  ${document.parseResult.value?.persons?.map(p => p.name)?.join('\n  ')}
-                Greetings to:
-                  ${document.parseResult.value?.greetings?.map(g => g.person.$refText)?.join('\n  ')}
-            `
-        ).toBe(s`
-            Persons:
-              Langium
-            Greetings to:
-              Langium
-        `);
-    });
+  expect(document.parseResult.lexerErrors).toHaveLength(0);
+  expect(document.parseResult.parserErrors).toHaveLength(0);
 });
 
-function checkDocumentValid(document: LangiumDocument): string | undefined {
-    return document.parseResult.parserErrors.length && s`
-        Parser errors:
-          ${document.parseResult.parserErrors.map(e => e.message).join('\n  ')}
-    `
-        || document.parseResult.value === undefined && `ParseResult is 'undefined'.`
-        || !isModel(document.parseResult.value) && `Root AST object is a ${document.parseResult.value.$type}, expected a '${Model}'.`
-        || undefined;
-}
+test("full example with imports", async () => {
+  const { parse } = init();
+  const document = await parse(`
+    import 'coords.t'
+
+    struct Entity {
+        position: coords.Position = 0
+    }
+
+    choice Move {
+        up = 0
+        down = 1
+        left = 2
+        right = 3
+    }
+  `);
+
+  expect(document.parseResult.lexerErrors).toHaveLength(0);
+  expect(document.parseResult.parserErrors).toHaveLength(0);
+});
