@@ -7,3 +7,4 @@ out/
 src/language/generated/
 dist/
 *.tsbuildinfo
+*.vsix
