@@ -49,9 +49,9 @@ test("full example with imports", async () => {
 
     choice Move {
         up = 0
-        down = 1
-        left = 2
-        right = 3
+        down: Bool = 1
+        left: Bool = 2
+        right: Bool = 3
     }
   `);
 
