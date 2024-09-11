@@ -1,19 +1,8 @@
 import { expect, test } from "vitest";
-import { EmptyFileSystemProvider, FileSystemProvider } from "langium";
-import { parseHelper } from "langium/test";
-import { createTypicalServices } from "../../src/language/typical-module.js";
-import { Schema } from "../../src/language/generated/ast.js";
-
-const init = (fs?: FileSystemProvider) => {
-  const services = createTypicalServices({
-    fileSystemProvider: () => fs ?? new EmptyFileSystemProvider(),
-  });
-  const parse = parseHelper<Schema>(services.Typical);
-  return { services, parse };
-};
+import { init } from "../utils";
 
 test("parse struct", async () => {
-  const { parse } = init();
+  const { parse } = await init();
   const document = await parse(`
     struct Point {
       x: S64 = 0
@@ -26,7 +15,7 @@ test("parse struct", async () => {
 });
 
 test("parse choice", async () => {
-  const { parse } = init();
+  const { parse } = await init();
   const document = await parse(`
     choice Option {
       no: Bool = 0
@@ -39,7 +28,7 @@ test("parse choice", async () => {
 });
 
 test("full example with imports", async () => {
-  const { parse } = init();
+  const { parse } = await init();
   const document = await parse(`
     import 'coords.t'
 
