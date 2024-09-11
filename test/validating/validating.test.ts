@@ -1,66 +1,60 @@
-import { beforeAll, describe, expect, test } from "vitest";
-import { EmptyFileSystem, type LangiumDocument } from "langium";
+import { expect, test } from "vitest";
 import { expandToString as s } from "langium/generate";
-import { parseHelper } from "langium/test";
 import type { Diagnostic } from "vscode-languageserver-types";
-import { createTypicalServices } from "../../src/language/typical-module.js";
-import { Model, isModel } from "../../src/language/generated/ast.js";
+import { init, expectDocumentValid } from "../utils";
 
-let services: ReturnType<typeof createTypicalServices>;
-let parse:    ReturnType<typeof parseHelper<Model>>;
-let document: LangiumDocument<Model> | undefined;
+test("check no errors", async () => {
+  const { parse } = await init();
+  const document = await parse(`
+      struct Point {
+        x: S64 = 0
+        y: S64 = 1
+      }
+    `);
 
-beforeAll(async () => {
-    services = createTypicalServices(EmptyFileSystem);
-    const doParse = parseHelper<Model>(services.Typical);
-    parse = (input: string) => doParse(input, { validation: true });
-
-    // activate the following if your linking test requires elements from a built-in library, for example
-    // await services.shared.workspace.WorkspaceManager.initializeWorkspace([]);
+  expectDocumentValid(document);
+  expect(
+    document?.diagnostics?.map(diagnosticToString)?.join("\n")
+  ).toHaveLength(0);
 });
 
-describe('Validating', () => {
-  
-    test('check no errors', async () => {
-        document = await parse(`
-            person Langium
-        `);
+test("missing local type is invalid", async () => {
+  const { parse } = await init();
+  const document = await parse(`
+      struct Point {
+        x: number = 0
+      }
+    `);
 
-        expect(
-            // here we first check for validity of the parsed document object by means of the reusable function
-            //  'checkDocumentValid()' to sort out (critical) typos first,
-            // and then evaluate the diagnostics by converting them into human readable strings;
-            // note that 'toHaveLength()' works for arrays and strings alike ;-)
-            checkDocumentValid(document) || document?.diagnostics?.map(diagnosticToString)?.join('\n')
-        ).toHaveLength(0);
-    });
-
-    test('check capital letter validation', async () => {
-        document = await parse(`
-            person langium
-        `);
-
-        expect(
-            checkDocumentValid(document) || document?.diagnostics?.map(diagnosticToString)?.join('\n')
-        ).toEqual(
-            // 'expect.stringContaining()' makes our test robust against future additions of further validation rules
-            expect.stringContaining(s`
-                [1:19..1:26]: Person name should start with a capital.
-            `)
-        );
-    });
+  expectDocumentValid(document);
+  expect(document?.diagnostics?.map(diagnosticToString)?.join("\n")).toEqual(
+    expect.stringContaining(s`
+          [2:11..2:17]: Type 'number' is not defined.
+      `)
+  );
 });
 
-function checkDocumentValid(document: LangiumDocument): string | undefined {
-    return document.parseResult.parserErrors.length && s`
-        Parser errors:
-          ${document.parseResult.parserErrors.map(e => e.message).join('\n  ')}
-    `
-        || document.parseResult.value === undefined && `ParseResult is 'undefined'.`
-        || !isModel(document.parseResult.value) && `Root AST object is a ${document.parseResult.value.$type}, expected a '${Model}'.`
-        || undefined;
-}
+test("missing imported type is invalid", async () => {
+  const { parse } = await init({
+    "coords.t": "struct Position { x: S64 = 0, y: S64 = 1 }",
+  });
+  const document = await parse(`
+    import 'coords.t'
+
+    struct Entity {
+      position: coords.Position = 0
+      location: coords.Location = 1
+    }
+  `);
+
+  expectDocumentValid(document);
+  expect(document?.diagnostics?.map(diagnosticToString)?.join("\n")).toEqual(
+    expect.stringContaining(s`
+          [5:23..5:31]: Type 'Location' is not defined in imported schema 'coords.t'.
+      `)
+  );
+});
 
 function diagnosticToString(d: Diagnostic) {
-    return `[${d.range.start.line}:${d.range.start.character}..${d.range.end.line}:${d.range.end.character}]: ${d.message}`;
+  return `[${d.range.start.line}:${d.range.start.character}..${d.range.end.line}:${d.range.end.character}]: ${d.message}`;
 }

@@ -20,6 +20,7 @@ import {
   TypicalScopeProvider,
 } from "./typical-scope.js";
 import { TypicalSemanticTokenProvider } from "./typical-token-provider.js";
+import { TypicalLinker } from "./typical-linker.js";
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -49,6 +50,7 @@ export const TypicalModule: Module<
     TypicalValidator: (services) => new TypicalValidator(services),
   },
   references: {
+    Linker: (services) => new TypicalLinker(services),
     ScopeComputation: (services) => new TypicalScopeComputation(services),
     ScopeProvider: (services) => new TypicalScopeProvider(services),
   },
