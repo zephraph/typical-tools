@@ -86,7 +86,8 @@
     "onLanguage:typical"
   ],
   "main": "./out/extension/main.js",
-  "bin": {
-    "typical-cli": "./bin/cli.js"
+  "publisher": "just-be",
+  "author": {
+    "name": "Justin Bennett"
   }
 }
