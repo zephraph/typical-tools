@@ -2,7 +2,7 @@
   "name": "typical-tools",
   "description": "A language server for Typical, a protobuf-like language",
   "repository": "https://github.com/zephraph/typical-tools",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "files": [
     "bin",
     "out",
