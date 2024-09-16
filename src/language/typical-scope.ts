@@ -18,9 +18,9 @@ export class TypicalScopeComputation extends DefaultScopeComputation {
     document: LangiumDocument<AstNode>
   ): Promise<AstNodeDescription[]> {
     const schema = document.parseResult.value as Schema;
-    return schema.declarations.map((d) =>
-      this.descriptions.createDescription(d, d.name)
-    );
+    return schema.declarations
+      .filter((d) => d.name)
+      .map((d) => this.descriptions.createDescription(d, d.name));
   }
 }
 
