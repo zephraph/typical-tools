@@ -2,7 +2,7 @@
   "name": "typical-tools",
   "description": "A language server for Typical, a protobuf-like language",
   "repository": "https://github.com/zephraph/typical-tools",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "files": [
     "bin",
     "out",
@@ -85,7 +85,7 @@
   "activationEvents": [
     "onLanguage:typical"
   ],
-  "main": "./out/extension/main.js",
+  "main": "./out/extension/main.cjs",
   "publisher": "just-be",
   "author": {
     "name": "Justin Bennett"
