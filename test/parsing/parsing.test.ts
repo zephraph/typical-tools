@@ -47,3 +47,8 @@ test("full example with imports", async () => {
   expect(document.parseResult.lexerErrors).toHaveLength(0);
   expect(document.parseResult.parserErrors).toHaveLength(0);
 });
+
+test("decl without name shouldn't throw", async () => {
+  const { parse } = await init();
+  expect(parse(`struct`)).resolves.not.toThrowError();
+});
