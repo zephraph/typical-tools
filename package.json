@@ -43,7 +43,7 @@
     "langium-cli": "~3.1.0",
     "typescript": "~5.6.2",
     "vite": "~5.2.7",
-    "vitest": "~1.4.0",
+    "vitest": "~1.6.0",
     "vsce": "^2.15.0",
     "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
   },
