@@ -1,4 +1,13 @@
 .vscode/**
 .vscode-test/**
 .gitignore
-langium-quickstart.md
+langium-config.json
+
+!out/extension/**/*.js
+!out/extension/**/*.cjs
+
+src
+node_modules
+test
+static
+dist

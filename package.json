@@ -2,7 +2,7 @@
   "name": "typical-tools",
   "description": "A language server for Typical, a protobuf-like language",
   "repository": "https://github.com/zephraph/typical-tools",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "files": [
     "bin",
     "out",
@@ -10,7 +10,7 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "tsc -b tsconfig.src.json && node esbuild.mjs",
+    "build": "npm run langium:generate && tsc -b tsconfig.src.json && node esbuild.mjs",
     "watch": "concurrently -n tsc,esbuild -c blue,yellow \"tsc -b tsconfig.src.json --watch\" \"node esbuild.mjs --watch\"",
     "langium:generate": "langium generate",
     "langium:watch": "langium generate --watch",
@@ -85,8 +85,9 @@
   "activationEvents": [
     "onLanguage:typical"
   ],
-  "main": "./out/extension/main.js",
-  "bin": {
-    "typical-cli": "./bin/cli.js"
+  "main": "./out/extension/main.cjs",
+  "publisher": "just-be",
+  "author": {
+    "name": "Justin Bennett"
   }
 }
