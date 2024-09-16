@@ -42,6 +42,6 @@ jobs:
         run: npm ci
 
       - name: Publish to Visual Studio Marketplace
-        run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish -p ${{ secrets.VSCE_PAT }} --skip-duplicate
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
