@@ -48,10 +48,6 @@
     "vsce": "^2.15.0",
     "vscode": "npm:@codingame/monaco-vscode-api@~3.2.3"
   },
-  "volta": {
-    "node": "18.19.1",
-    "npm": "10.2.4"
-  },
   "displayName": "Typical",
   "engines": {
     "vscode": "^1.67.0",
