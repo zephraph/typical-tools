@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@codingame/monaco-vscode-editor-service-override": "~3.2.3",
-    "@codingame/monaco-vscode-keybindings-service-override": "~3.2.3",
+    "@codingame/monaco-vscode-keybindings-service-override": "~9.0.0",
     "langium": "~3.1.0",
     "monaco-editor": "npm:@codingame/monaco-vscode-editor-api@~3.2.3",
     "monaco-editor-wrapper": "~4.0.2",
